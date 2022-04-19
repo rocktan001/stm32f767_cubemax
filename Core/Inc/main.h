@@ -58,6 +58,11 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
+#define LCD_FB_START_ADDRESS 0xD0000000
+#define LCD_PIXEL_WIDTH 800
+#define LCD_PIXEL_HEIGHT 480
+#define LTDC_BL_GPIO_PIN_Pin GPIO_PIN_7
+#define LTDC_BL_GPIO_PIN_GPIO_Port GPIOD
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */

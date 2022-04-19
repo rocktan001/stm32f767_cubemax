@@ -22,8 +22,8 @@
 
 /* USER CODE BEGIN 0 */
 /**
-  * @brief  延迟一段时间
-  * @param  延迟的时间长度
+  * @brief  延迟�?段时�?
+  * @param  延迟的时间长�?
   * @retval None
   */
 static void SDRAM_delay(__IO uint32_t nCount)
@@ -35,7 +35,7 @@ static void SDRAM_delay(__IO uint32_t nCount)
 }
 
 /**
-  * @brief  对SDRAM芯片进行初始化配置
+  * @brief  对SDRAM芯片进行初始化配�?
   * @param  None. 
   * @retval None.
   */
@@ -59,7 +59,7 @@ static void SDRAM_InitSequence(void)
   uint32_t tmpr = 0;
  static FMC_SDRAM_CommandTypeDef Command; 
 /* Step 3 --------------------------------------------------------------------*/
-  /* 配置命令：开启提供给SDRAM的时钟 */
+  /* 配置命令：开启提供给SDRAM的时�? */
   Command.CommandMode = FMC_SDRAM_CMD_CLK_ENABLE;
   Command.CommandTarget = FMC_SDRAM_CMD_TARGET_BANK2;
   Command.AutoRefreshNumber = 1;
@@ -72,7 +72,7 @@ static void SDRAM_InitSequence(void)
   SDRAM_delay(1);
     
 /* Step 5 --------------------------------------------------------------------*/
-  /* 配置命令：对所有的bank预充电 */ 
+  /* 配置命令：对�?有的bank预充�? */ 
   Command.CommandMode = FMC_SDRAM_CMD_PALL;
   Command.CommandTarget = FMC_SDRAM_CMD_TARGET_BANK2;
   Command.AutoRefreshNumber = 1;
@@ -81,7 +81,7 @@ static void SDRAM_InitSequence(void)
   HAL_SDRAM_SendCommand(&hsdram2, &Command, 0xFFFF);   
   
 /* Step 6 --------------------------------------------------------------------*/
-  /* 配置命令：自动刷新 */   
+  /* 配置命令：自动刷�? */   
   Command.CommandMode = FMC_SDRAM_CMD_AUTOREFRESH_MODE;
   Command.CommandTarget = FMC_SDRAM_CMD_TARGET_BANK2;
   Command.AutoRefreshNumber = 4;
@@ -90,14 +90,14 @@ static void SDRAM_InitSequence(void)
   HAL_SDRAM_SendCommand(&hsdram2, &Command, 0xFFFF);
   
 /* Step 7 --------------------------------------------------------------------*/
-  /* 设置sdram寄存器配置 */
+  /* 设置sdram寄存器配�? */
   tmpr = (uint32_t)SDRAM_MODEREG_BURST_LENGTH_2          |
                    SDRAM_MODEREG_BURST_TYPE_SEQUENTIAL   |
                    SDRAM_MODEREG_CAS_LATENCY_3           |
                    SDRAM_MODEREG_OPERATING_MODE_STANDARD |
                    SDRAM_MODEREG_WRITEBURST_MODE_SINGLE;
   
-  /* 配置命令：设置SDRAM寄存器 */
+  /* 配置命令：设置SDRAM寄存�? */
   Command.CommandMode = FMC_SDRAM_CMD_LOAD_MODE;
   Command.CommandTarget = FMC_SDRAM_CMD_TARGET_BANK2;
   Command.AutoRefreshNumber = 1;
@@ -106,7 +106,7 @@ static void SDRAM_InitSequence(void)
   HAL_SDRAM_SendCommand(&hsdram2, &Command, 0xFFFF);
 /* Step 8 --------------------------------------------------------------------*/
 
-  /* 设置刷新计数器 */
+  /* 设置刷新计数�? */
   /* (7.8125 us x Freq) - 20 */
   /* Step 6: Set the refresh rate counter */
   /* Set the device refresh rate */

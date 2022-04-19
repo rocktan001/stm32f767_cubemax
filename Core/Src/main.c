@@ -19,6 +19,8 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "dma2d.h"
+#include "ltdc.h"
 #include "tim.h"
 #include "usart.h"
 #include "gpio.h"
@@ -26,7 +28,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "lcd_display.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -57,7 +59,31 @@ void SystemClock_Config(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+void rock_lcd_test()
+{
+  printf("lcd ok\n");
+  LCD_DisplayOn();
 
+    /* 选择LCD第一�? */
+    LCD_SelectLayer(0);
+
+    /* 第一层清屏，显示全黑 */ 
+    LCD_Clear(0xFF000000);  
+
+    /* 选择LCD第二�? */
+    LCD_SelectLayer(1);
+
+    /* 第二层清屏，显示全黑 */ 
+    LCD_Clear(0xFF000000);
+
+    LCD_SelectLayer(0);
+    
+    for(uint16_t i = 0; i < 200; i++){
+      for(uint16_t j=0; j< 400; j++){
+        LCD_DrawPixel(i,j,0xffffffff);
+      }
+    }
+}
 /* USER CODE END 0 */
 
 /**
@@ -91,8 +117,10 @@ int main(void)
   MX_TIM3_Init();
   MX_USART1_UART_Init();
   MX_FMC_Init();
+  MX_LTDC_Init();
+  MX_DMA2D_Init();
   /* USER CODE BEGIN 2 */
-  printf("init ok\n");
+  rock_lcd_test();
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -155,7 +183,13 @@ void SystemClock_Config(void)
   {
     Error_Handler();
   }
-  PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_USART1;
+  PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_LTDC|RCC_PERIPHCLK_USART1;
+  PeriphClkInitStruct.PLLSAI.PLLSAIN = 192;
+  PeriphClkInitStruct.PLLSAI.PLLSAIR = 2;
+  PeriphClkInitStruct.PLLSAI.PLLSAIQ = 2;
+  PeriphClkInitStruct.PLLSAI.PLLSAIP = RCC_PLLSAIP_DIV2;
+  PeriphClkInitStruct.PLLSAIDivQ = 1;
+  PeriphClkInitStruct.PLLSAIDivR = RCC_PLLSAIDIVR_4;
   PeriphClkInitStruct.Usart1ClockSelection = RCC_USART1CLKSOURCE_PCLK2;
   if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct) != HAL_OK)
   {
