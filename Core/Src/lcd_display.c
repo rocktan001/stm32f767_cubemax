@@ -1,6 +1,7 @@
 #include "lcd_display.h"
 /* Default LCD configuration with LCD Layer 1 */
 static uint32_t            ActiveLayer = 0;
+static LCD_DrawPropTypeDef DrawProp[MAX_LAYER_NUMBER];
 
 extern LTDC_HandleTypeDef hltdc;
 extern DMA2D_HandleTypeDef hdma2d;
@@ -78,7 +79,9 @@ void LCD_LayerInit(uint16_t LayerIndex, uint32_t FB_Address,uint32_t PixelFormat
   
   HAL_LTDC_ConfigLayer(&Ltdc_Handler, &layer_cfg, LayerIndex); //设置选中的层参数
 
-  
+  DrawProp[LayerIndex].BackColor = LCD_COLOR_WHITE;//设置层的字体颜色
+  // DrawProp[LayerIndex].pFont     = &LCD_DEFAULT_FONT;//设置层的字体类型
+  DrawProp[LayerIndex].TextColor = LCD_COLOR_BLACK; //设置层的字体背景颜色  
   __HAL_LTDC_RELOAD_CONFIG(&Ltdc_Handler);//重载层的配置参数
 }
 /**
@@ -222,6 +225,196 @@ void LCD_DisplayOff(void)
 }
 
 /**
+  * @brief  设置LCD当前层文字颜色
+  * @param  Color: 文字颜色
+  * @retval 无
+  */
+void LCD_SetTextColor(uint32_t Color)
+{
+  DrawProp[ActiveLayer].TextColor = Color;
+}
+
+/**
+  * @brief  获取LCD当前层文字颜色
+  * @retval 文字颜色
+  */
+uint32_t LCD_GetTextColor(void)
+{
+  return DrawProp[ActiveLayer].TextColor;
+}
+
+/**
+  * @brief  设置LCD当前层的文字背景颜色
+  * @param  Color: 文字背景颜色
+  * @retval 无
+  */
+void LCD_SetBackColor(uint32_t Color)
+{
+  DrawProp[ActiveLayer].BackColor = Color;
+}
+
+/**
+  * @brief  获取LCD当前层的文字背景颜色
+  * @retval 文字背景颜色
+  */
+uint32_t LCD_GetBackColor(void)
+{
+  return DrawProp[ActiveLayer].BackColor;
+}
+
+/**
+ * @brief  设置LCD文字的颜色和背景的颜色
+ * @param  TextColor: 指定文字颜色
+ * @param  BackColor: 指定背景颜色
+ * @retval 无
+ */
+void LCD_SetColors(uint32_t TextColor, uint32_t BackColor)
+{
+     LCD_SetTextColor (TextColor);
+     LCD_SetBackColor (BackColor);
+}
+/**
+  * @brief  绘制水平线
+  * @param  Xpos: X轴起始坐标
+  * @param  Ypos: Y轴起始坐标
+  * @param  Length: 线的长度
+  * @retval 无
+  */
+void LCD_DrawHLine(uint16_t Xpos, uint16_t Ypos, uint16_t Length)
+{
+  uint32_t  Xaddress = 0;
+
+  if(Ltdc_Handler.LayerCfg[ActiveLayer].PixelFormat == LTDC_PIXEL_FORMAT_ARGB8888)
+  {
+    Xaddress = (Ltdc_Handler.LayerCfg[ActiveLayer].FBStartAdress) + 4*(LCD_GetXSize()*Ypos + Xpos);
+  }
+  else if(Ltdc_Handler.LayerCfg[ActiveLayer].PixelFormat == LTDC_PIXEL_FORMAT_RGB888)
+  {
+    Xaddress = (Ltdc_Handler.LayerCfg[ActiveLayer].FBStartAdress) + 3*(LCD_GetXSize()*Ypos + Xpos);
+  }
+  else if((Ltdc_Handler.LayerCfg[ActiveLayer].PixelFormat == LTDC_PIXEL_FORMAT_RGB565) || \
+          (Ltdc_Handler.LayerCfg[ActiveLayer].PixelFormat == LTDC_PIXEL_FORMAT_ARGB4444) || \
+          (Ltdc_Handler.LayerCfg[ActiveLayer].PixelFormat == LTDC_PIXEL_FORMAT_AL88))  
+  {
+    Xaddress = (Ltdc_Handler.LayerCfg[ActiveLayer].FBStartAdress) + 2*(LCD_GetXSize()*Ypos + Xpos);   
+  }
+  else
+  {
+    Xaddress = (Ltdc_Handler.LayerCfg[ActiveLayer].FBStartAdress) + 2*(LCD_GetXSize()*Ypos + Xpos);   
+  } 
+  /* 填充数据 */
+  LL_FillBuffer(ActiveLayer, (uint32_t *)Xaddress, Length, 1, 0, DrawProp[ActiveLayer].TextColor);
+}
+
+/**
+  * @brief  绘制垂直线
+  * @param  Xpos: X轴起始坐标
+  * @param  Ypos: Y轴起始坐标
+  * @param  Length: 线的长度
+  * @retval 无
+  */
+void LCD_DrawVLine(uint16_t Xpos, uint16_t Ypos, uint16_t Length)
+{
+  uint32_t  Xaddress = 0;
+  
+  if(Ltdc_Handler.LayerCfg[ActiveLayer].PixelFormat == LTDC_PIXEL_FORMAT_ARGB8888)
+  {
+    Xaddress = (Ltdc_Handler.LayerCfg[ActiveLayer].FBStartAdress) + 4*(LCD_GetXSize()*Ypos + Xpos);
+  }
+  else if(Ltdc_Handler.LayerCfg[ActiveLayer].PixelFormat == LTDC_PIXEL_FORMAT_RGB888)
+  {
+    Xaddress = (Ltdc_Handler.LayerCfg[ActiveLayer].FBStartAdress) + 3*(LCD_GetXSize()*Ypos + Xpos);
+  }
+  else if((Ltdc_Handler.LayerCfg[ActiveLayer].PixelFormat == LTDC_PIXEL_FORMAT_RGB565) || \
+          (Ltdc_Handler.LayerCfg[ActiveLayer].PixelFormat == LTDC_PIXEL_FORMAT_ARGB4444) || \
+          (Ltdc_Handler.LayerCfg[ActiveLayer].PixelFormat == LTDC_PIXEL_FORMAT_AL88))  
+  {
+    Xaddress = (Ltdc_Handler.LayerCfg[ActiveLayer].FBStartAdress) + 2*(LCD_GetXSize()*Ypos + Xpos);   
+  }
+  else
+  {
+    Xaddress = (Ltdc_Handler.LayerCfg[ActiveLayer].FBStartAdress) + 2*(LCD_GetXSize()*Ypos + Xpos);   
+  } 
+  
+  /* 填充数据 */
+  LL_FillBuffer(ActiveLayer, (uint32_t *)Xaddress, 1, Length, (LCD_GetXSize() - 1), DrawProp[ActiveLayer].TextColor);
+}
+
+/**
+  * @brief  指定两点画一条线
+  * @param  x1: 第一点X轴坐标
+  * @param  y1: 第一点Y轴坐标
+  * @param  x2: 第二点X轴坐标
+  * @param  y2: 第二点Y轴坐标
+  * @retval 无
+  */
+void LCD_DrawLine(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2)
+{
+  int16_t deltax = 0, deltay = 0, x = 0, y = 0, xinc1 = 0, xinc2 = 0, 
+  yinc1 = 0, yinc2 = 0, den = 0, num = 0, num_add = 0, num_pixels = 0, 
+  curpixel = 0;
+  
+  deltax = ABS(x2 - x1);        /* 求x轴的绝对值 */
+  deltay = ABS(y2 - y1);        /* 求y轴的绝对值 */
+  x = x1;                       /* 第一个像素的x坐标起始值 */
+  y = y1;                       /* 第一个像素的y坐标起始值 */
+  
+  if (x2 >= x1)                 /* x坐标值为递增 */
+  {
+    xinc1 = 1;
+    xinc2 = 1;
+  }
+  else                          /* x坐标值为递减 */
+  {
+    xinc1 = -1;
+    xinc2 = -1;
+  }
+  
+  if (y2 >= y1)                 /* y坐标值为递增 */
+  {
+    yinc1 = 1;
+    yinc2 = 1;
+  }
+  else                          /* y坐标值为递减 */
+  {
+    yinc1 = -1;
+    yinc2 = -1;
+  }
+  
+  if (deltax >= deltay)         /* 每个 y 坐标值至少有一个x坐标值*/
+  {
+    xinc1 = 0;                  /* 当分子大于或等于分母时不要改变 x */
+    yinc2 = 0;                  /* 不要为每次迭代更改 y */
+    den = deltax;
+    num = deltax / 2;
+    num_add = deltay;
+    num_pixels = deltax;         /* x比y多的值 */
+  }
+  else                          /* 每个 x 坐标值至少有一个y坐标值 */
+  {
+    xinc2 = 0;                  /* 不要为每次迭代更改 x */
+    yinc1 = 0;                  /* 当分子大于或等于分母时不要改变 y */
+    den = deltay;
+    num = deltay / 2;
+    num_add = deltax;
+    num_pixels = deltay;         /* y比x多的值 */
+  }
+  
+  for (curpixel = 0; curpixel <= num_pixels; curpixel++)
+  {
+    LCD_DrawPixel(x, y, DrawProp[ActiveLayer].TextColor);   /* 绘制当前像素点 */
+    num += num_add;                            /* 在分数的基础上增加分子 */
+    if (num >= den)                           /* 检查分子大于或等于分母 */
+    {
+      num -= den;                             /* 计算新的分子值 */
+      x += xinc1;                             /* x值递增 */
+      y += yinc1;                             /* y值递增 */
+    }
+    x += xinc2;                               /* y值递增 */
+    y += yinc2;                               /* y值递增 */
+  }
+}
+/**
   * @brief  绘制一个点
   * @param  Xpos:   X轴坐标
   * @param  Ypos:   Y轴坐标
@@ -254,6 +447,90 @@ void LCD_DrawPixel(uint16_t Xpos, uint16_t Ypos, uint32_t RGB_Code)
 
 }
 
+/**
+  * @brief  填充一个实心矩形
+  * @param  Xpos: X坐标值
+  * @param  Ypos: Y坐标值
+  * @param  Width:  矩形宽度 
+  * @param  Height: 矩形高度
+  * @retval 无
+  */
+void LCD_FillRect(uint16_t Xpos, uint16_t Ypos, uint16_t Width, uint16_t Height)
+{
+  uint32_t  x_address = 0;
+  
+  /* 设置文字颜色 */
+  LCD_SetTextColor(DrawProp[ActiveLayer].TextColor);
+  
+  /* 设置矩形开始地址 */
+    if(Ltdc_Handler.LayerCfg[ActiveLayer].PixelFormat == LTDC_PIXEL_FORMAT_ARGB8888)
+  {
+    x_address = (Ltdc_Handler.LayerCfg[ActiveLayer].FBStartAdress) + 4*(LCD_GetXSize()*Ypos + Xpos);
+  }
+  else if(Ltdc_Handler.LayerCfg[ActiveLayer].PixelFormat == LTDC_PIXEL_FORMAT_RGB888)
+  {
+    x_address = (Ltdc_Handler.LayerCfg[ActiveLayer].FBStartAdress) + 3*(LCD_GetXSize()*Ypos + Xpos);
+  }
+  else if((Ltdc_Handler.LayerCfg[ActiveLayer].PixelFormat == LTDC_PIXEL_FORMAT_RGB565) || \
+          (Ltdc_Handler.LayerCfg[ActiveLayer].PixelFormat == LTDC_PIXEL_FORMAT_ARGB4444) || \
+          (Ltdc_Handler.LayerCfg[ActiveLayer].PixelFormat == LTDC_PIXEL_FORMAT_AL88))  
+  {
+    x_address = (Ltdc_Handler.LayerCfg[ActiveLayer].FBStartAdress) + 2*(LCD_GetXSize()*Ypos + Xpos);   
+  }
+  else
+  {
+    x_address = (Ltdc_Handler.LayerCfg[ActiveLayer].FBStartAdress) + 2*(LCD_GetXSize()*Ypos + Xpos);
+  } 
+  /* 填充矩形 */
+  LL_FillBuffer(ActiveLayer, (uint32_t *)x_address, Width, Height, (LCD_GetXSize() - Width), DrawProp[ActiveLayer].TextColor);
+}
+/**
+  * @brief  绘制一个圆形
+  * @param  Xpos:   X轴坐标
+  * @param  Ypos:   Y轴坐标
+  * @param  Radius: 圆的半径
+  * @retval 无
+  */
+void LCD_DrawCircle(uint16_t Xpos, uint16_t Ypos, uint16_t Radius)
+{
+  int32_t   decision;    /* 决策变量 */ 
+  uint32_t  current_x;   /* 当前x坐标值 */
+  uint32_t  current_y;   /* 当前y坐标值 */
+  
+  decision = 3 - (Radius << 1);
+  current_x = 0;
+  current_y = Radius;
+  
+  while (current_x <= current_y)
+  {
+    LCD_DrawPixel((Xpos + current_x), (Ypos - current_y), DrawProp[ActiveLayer].TextColor);
+    
+    LCD_DrawPixel((Xpos - current_x), (Ypos - current_y), DrawProp[ActiveLayer].TextColor);
+    
+    LCD_DrawPixel((Xpos + current_y), (Ypos - current_x), DrawProp[ActiveLayer].TextColor);
+    
+    LCD_DrawPixel((Xpos - current_y), (Ypos - current_x), DrawProp[ActiveLayer].TextColor);
+    
+    LCD_DrawPixel((Xpos + current_x), (Ypos + current_y), DrawProp[ActiveLayer].TextColor);
+    
+    LCD_DrawPixel((Xpos - current_x), (Ypos + current_y), DrawProp[ActiveLayer].TextColor);
+    
+    LCD_DrawPixel((Xpos + current_y), (Ypos + current_x), DrawProp[ActiveLayer].TextColor);
+    
+    LCD_DrawPixel((Xpos - current_y), (Ypos + current_x), DrawProp[ActiveLayer].TextColor);
+    
+    if (decision < 0)
+    { 
+      decision += (current_x << 2) + 6;
+    }
+    else
+    {
+      decision += ((current_x - current_y) << 2) + 10;
+      current_y--;
+    }
+    current_x++;
+  } 
+}
 /**
   * @brief  填充一个缓冲区
   * @param  LayerIndex: 当前层

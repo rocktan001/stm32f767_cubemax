@@ -62,27 +62,36 @@ void SystemClock_Config(void);
 void rock_lcd_test()
 {
   printf("lcd ok\n");
+
+  /* LCD 第一层初始化 */ 
+  LCD_LayerInit(0, LCD_FB_START_ADDRESS,ARGB8888);
+  
   LCD_DisplayOn();
 
-    /* 选择LCD第一�? */
-    LCD_SelectLayer(0);
+  /* 选择LCD第一层 */
+  LCD_SelectLayer(0);
 
-    /* 第一层清屏，显示全黑 */ 
-    LCD_Clear(0xFF000000);  
+  /* 第一层清屏，显示全黑 */ 
+  LCD_Clear(LCD_COLOR_BLACK); 
 
-    /* 选择LCD第二�? */
-    LCD_SelectLayer(1);
+  /* 选择LCD第二层 */
+  LCD_SelectLayer(1);
 
-    /* 第二层清屏，显示全黑 */ 
-    LCD_Clear(0xFF000000);
+  /* 第二层清屏，显示全黑 */ 
+  LCD_Clear(LCD_COLOR_TRANSPARENT);
 
-    LCD_SelectLayer(0);
-    
-    for(uint16_t i = 0; i < 200; i++){
-      for(uint16_t j=0; j< 400; j++){
-        LCD_DrawPixel(i,j,0xffffffff);
-      }
-    }
+
+
+  LCD_SelectLayer(0);
+
+  LCD_SetColors(LCD_COLOR_RED,LCD_COLOR_BLACK);
+  LCD_DrawLine(50,250,750,250);
+
+  LCD_SetColors(LCD_COLOR_RED,LCD_COLOR_BLACK);
+  LCD_FillRect(200,250,200,100); 
+
+  LCD_SetColors(LCD_COLOR_GREEN,LCD_COLOR_GREEN);
+  LCD_DrawCircle(200,350,50);
 }
 /* USER CODE END 0 */
 
